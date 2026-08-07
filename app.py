@@ -37,6 +37,9 @@ st.title("💎 KÜRESEL ENTEGRASYONLU KAPALIÇARŞI & FAİZ BORSASI PANELİ")
 st.markdown(f"*{get_finans_mottosu()}*")
 st.markdown("---")
 
+# ÜST SEKME (SAYFA) SİSTEMİ
+sekme1, sekme2 = st.tabs(["📊 Canlı Takip Paneli", "🧠 Altın Bilgi Kütüphanesi"])
+
 # 1. CANLI VERİLERİ KÜRESEL BORSALARDAN ALMA
 altin_ticker = yf.Ticker("GC=F")
 dolar_ticker = yf.Ticker("USDTRY=X")
@@ -120,25 +123,7 @@ else:
         {"ad": "Ziraat Bankası", "hosgeldin": 35.0, "standart": 32.0}
     ]
 
-    # 5. GÖRSEL ARAYÜZÜ OLUŞTURMA
-    anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
-    fed_sayaci = fed_kalan_sure()
-    
-    # Zaman ve Fed Sayacı Bandı
-    col_zaman, col_fed = st.columns(2)
-    col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
-    col_fed.metric("🎯 FED Faiz Kararına", fed_sayaci)
-    st.markdown("---")
-
-    # Döviz ve Ons Bandı
-    st.subheader("📊 Canlı Küresel Göstergeler")
-    col_ons, col_dolar, col_dxy = st.columns(3)
-    col_ons.metric("Canlı Ons Altın", f"${canli_ons:,.2f}", f"{ons_degisim:+.2f}%")
-    col_dolar.metric("Canlı Dolar Kuru", f"{canli_dolar:.4f} TL")
-    col_dxy.metric("Canlı Dolar Endeksi (DXY)", f"{canli_dxy:.2f}")
-    st.markdown("---")
-
-    # --- YAN MENÜ: TEMİZLENMİŞ ALARM, HESAPLAYICI VE KADEMELİ PORTFÖY ---
+    # --- YAN MENÜ: ALARM, HESAPLAYICI VE KADEMELİ PORTFÖY ---
     st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
     hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0, key="alarm_input")
     if hedef_gram > 0:
@@ -181,50 +166,57 @@ else:
     toplam_adet = adet1 + adet2 + adet3
     toplam_maliyet = (adet1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
     
-    if toplam_adet > 0 and toplam_maliyet > 0:
-        ortalama_maliyet = toplam_maliyet / toplam_adet
-        
-        # Güncel borsa fiyat eşleşmesi
-        if p_turu == "Has Gram (24A)":
-            guncel_tek_fiyat = canli_gram
-        elif p_turu == "Çeyrek Altın":
-            guncel_tek_fiyat = ceyrek_altin
-        else:
-            guncel_tek_fiyat = ata_altin
-            
-        anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
-        kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
-        kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
-        
-        st.sidebar.markdown("---")
-        st.sidebar.metric("📊 Güncel Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
-        st.sidebar.text(f"Toplam Miktar: {toplam_adet:,.2f}")
-        st.sidebar.text(f"Ort. Maliyet: {ortalama_maliyet:,.2f} TL")
-        
-        if kar_zarar_tl >= 0:
-            st.sidebar.success(f"🟢 KÂRDASINIZ!\n\n Net Kâr: +{kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
-        else:
-            st.sidebar.error(f"🔴 ZARARDASINIZ!\n\n Net Zarar: {kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
-            
-    st.sidebar.markdown("---")
+    # --- 1. SAYFA: CANLI TAKİP PANELİ İÇERİĞİ ---
+    with sekme1:
+        # Zaman ve Fed Sayacı Bandı
+        col_zaman, col_fed = st.columns(2)
+        anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
+        col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
+        col_fed.metric("🎯 FED Faiz Kararına", fed_kalan_sure())
+        st.markdown("---")
 
-    # Kapalıçarşı Fiyatları
-    st.subheader("💰 Gram ve Sarrafiye Fiyatları")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.metric("Has Altın (24 Ayar)", f"{canli_gram:,.2f} TL")
-        st.caption(f"22 Ayar Gram Altın: {altin_22_ayar:,.2f} TL")
-    with c2:
-        st.metric("Çeyrek Altın", f"{ceyrek_altin:,.2f} TL")
-        st.caption(f"Yarım Altın: {yarim_altin:,.2f} TL")
-        st.caption(f"Tam (Ziynet) Altın: {tam_altin:,.2f} TL")
-    with c3:
-        st.metric("Ata (Cumhuriyet) Altın", f"{ata_altin:,.2f} TL")
-        st.caption(f"Reşat Altın: {resat_altin:,.2f} TL")
-    st.markdown("---")
+        # Kademeli Portföy Durum Raporu (Ana Ekrana Çizdirme)
+        if toplam_adet > 0 and toplam_maliyet > 0:
+            ortalama_maliyet = toplam_maliyet / toplam_adet
+            if p_turu == "Has Gram (24A)":
+                guncel_tek_fiyat = canli_gram
+            elif p_turu == "Çeyrek Altın":
+                guncel_tek_fiyat = ceyrek_altin
+            else:
+                guncel_tek_fiyat = ata_altin
+                
+            anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
+            kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
+            kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
+            
+            st.subheader("💼 Anlık Portföy Durum Raporunuz")
+            k_col1, k_col2, k_col3 = st.columns(3)
+            k_col1.metric("Güncel Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
+            k_col2.metric("Ortalama Maliyetiniz", f"{ortalama_maliyet:,.2f} TL")
+            if kar_zarar_tl >= 0:
+                k_col3.metric("Net Kâr Durumu", f"+{kar_zarar_tl:,.2f} TL", f"+%{kar_zarar_yuzde:,.2f}")
+            else:
+                k_col3.metric("Net Zarar Durumu", f"{kar_zarar_tl:,.2f} TL", f"%{kar_zarar_yuzde:,.2f}")
+            st.markdown("---")
 
-    # Kısa Vadeli Tahmin
-    st.subheader("🔮 Yarın İçin Kısa Vadeli Net Tahmin")
-    st.markdown(f"**Yön:** {yarin_tahmin}")
-    tahmin_kutusu(neden_ozeti)
-st.markdown("---")# İnteraktif Teknik Analiz Grafiğist.subheader("📈 Ons Altın & SMA20 Grafik Analizi (Son 60 Gün)")df_grafik = df_ons[['Close', 'SMA20']].rename(columns={'Close': 'Ons Kapanış Fiyatı ($)', 'SMA20': '20 Günlük Ortalama (SMA20)'})st.line_chart(df_grafik)st.markdown("---")# Karşılaştırma Tablosust.subheader("🇺🇸 Amerika Piyasası Veri Karşılaştırması")data_karsilastirma = {"Tarih / Veri": [f"Dün ({dun_tarih})", f"Bugün ({bugun_tarih})"],"Ons Altın ($)": [f"${dun_ons:,.2f}", f"${canli_ons:,.2f}"],"Dolar Endeksi (DXY)": [f"{dun_dxy:.2f}", f"{canli_dxy:.2f}"]}st.table(pd.DataFrame(data_karsilastirma))st.markdown("---")# Banka Faiz Oranlarıst.subheader("🏦 Bankaların Güncel Mevduat Faiz Yüzdeleri (32 Gün)")df_banka = pd.DataFrame(bankalar)df_banka.columns = ["Banka Adı", "Hoş Geldin Faizi (%)", "Standart Faiz (%)"]st.dataframe(df_banka, use_container_width=True)
+        # Döviz ve Ons Bandı
+        st.subheader("📊 Canlı Küresel Göstergeler")
+        col_ons, col_dolar, col_dxy = st.columns(3)
+        col_ons.metric("Canlı Ons Altın", f"${canli_ons:,.2f}", f"{ons_degisim:+.2f}%")
+        col_dolar.metric("Canlı Dolar Kuru", f"{canli_dolar:.4f} TL")
+        col_dxy.metric("Canlı Dolar Endeksi (DXY)", f"{canli_dxy:.2f}")
+        st.markdown("---")
+
+        # Kapalıçarşı Fiyatları
+        st.subheader("💰 Gram ve Sarrafiye Fiyatları")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.metric("Has Altın (24 Ayar)", f"{canli_gram:,.2f} TL")
+            st.caption(f"22 Ayar Gram Altın: {altin_22_ayar:,.2f} TL")
+        with c2:
+            st.metric("Çeyrek Altın", f"{ceyrek_altin:,.2f} TL")
+            st.caption(f"Yarım Altın: {yarim_altin:,.2f} TL")
+            st.caption(f"Tam (Ziynet) Altın: {tam_altin:,.2f} TL")
+        with c3:
+            st.metric("Ata (Cumhuriyet) Altın", f"{ata_altin:,.2f} TL")
+s
