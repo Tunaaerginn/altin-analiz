@@ -102,7 +102,7 @@ try:
                 "**Şimdiki Durum:** Altın hızla yükseldiği için uyanık yatırımcı 'Satarsam bir daha bu fiyattan geri alamam' korkusuyla "
                 "yüzleşiyor ve elindeki altını satmaya cesaret edemiyor."
             )
-        elif puand <= -1:
+        elif puan <= -1:
             yarin_tahmin = "AŞAĞI EĞİLİMLİ (BASKILANIYOR)"
             tahmin_kutusu = st.error
             neden_ozeti = "ABD Dolar Endeksi güçlü kalmaya devam ediyor ve teknik düzeltme başladı. Yarın altının kâr satışlarıyla geri çekilmesi beklenmektedir."
@@ -166,10 +166,8 @@ try:
         st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
         st.sidebar.markdown("---")
 
-        # YENİ ÖZELLİK: Cihaza Kayıtlı Dinamik Portföyüm Bölümü
+        # Cihaza Kayıtlı Dinamik Portföyüm Bölümü
         st.sidebar.subheader("💼 Dijital Portföyüm (Kayıtlı)")
-        
-        # Form elemanları sayesinde her 5 saniyede bir sayfayı yenilerken yazma işlemi kesintiye uğramaz
         p_gram = st.sidebar.number_input("Eldeki Has Gram (24A):", min_value=0.0, value=0.0, step=1.0, key="p_gram_val")
         p_ceyrek = st.sidebar.number_input("Eldeki Çeyrek (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ceyrek_val")
         p_ata = st.sidebar.number_input("Eldeki Ata (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ata_val")
@@ -216,3 +214,5 @@ try:
 
         # Banka Faiz Oranları
         st.subheader("🏦 Bankaların Güncel Mevduat Faiz Yüzdeleri (32 Gün)")
+        df_banka = pd.DataFrame(bankalar)
+        df_banka.columns = ["Banka Adı", "Hoş Geldin Faizi (%)", "Standart Faiz (%)"]
