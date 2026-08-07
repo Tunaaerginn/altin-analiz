@@ -52,6 +52,10 @@ df_dxy = dx_ticker.history(period="5d", interval="1d")
 if df_ons.empty or df_dolar.empty or df_dxy.empty:
     st.error("⚠️ Canlı veri hatası! Bağlantınızı kontrol edin.")
 else:
+    # Zaman Bilgisi İlk Olarak Burada Hesaplanıyor (Hata Önleyici)
+    anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
+    fed_sayaci = fed_kalan_sure()
+
     # Anlık ham piyasa değerleri
     canli_ons = float(df_ons['Close'].iloc[-1])
     canli_dolar = float(df_dolar['Close'].iloc[-1])
@@ -147,12 +151,11 @@ else:
     st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
     st.sidebar.markdown("---")
 
-    # KADEMELİ KÂR-ZARAR PORTFÖYÜ (TEMİZLENDİ)
     st.sidebar.subheader("💼 Kademeli Alım Portföyüm")
     p_turu = st.sidebar.selectbox("Altın Türü:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select")
     
     st.sidebar.markdown("**1. Parça Alım**")
-    adet1 = st.sidebar.number_input("Miktar 1:", min_value=0.0, value=0.0, step=1.0, key="a1")
+    ade1 = st.sidebar.number_input("Miktar 1:", min_value=0.0, value=0.0, step=1.0, key="a1")
     fiyat1 = st.sidebar.number_input("Alış Fiyatı 1:", min_value=0.0, value=0.0, step=10.0, key="f1")
     
     st.sidebar.markdown("**2. Parça Alım**")
@@ -163,19 +166,18 @@ else:
     adet3 = st.sidebar.number_input("Miktar 3:", min_value=0.0, value=0.0, step=1.0, key="a3")
     fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, step=10.0, key="f3")
     
-    toplam_adet = adet1 + adet2 + adet3
-    toplam_maliyet = (adet1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
+    toplam_adet = ade1 + adet2 + adet3
+    toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
     
     # --- 1. SAYFA: CANLI TAKİP PANELİ İÇERİĞİ ---
     with sekme1:
         # Zaman ve Fed Sayacı Bandı
         col_zaman, col_fed = st.columns(2)
-        anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
         col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
-        col_fed.metric("🎯 FED Faiz Kararına", fed_kalan_sure())
+        col_fed.metric("🎯 FED Faiz Kararına", fed_sayaci)
         st.markdown("---")
 
-        # Kademeli Portföy Durum Raporu (Ana Ekrana Çizdirme)
+        # Kademeli Portföy Durum Raporu
         if toplam_adet > 0 and toplam_maliyet > 0:
             ortalama_maliyet = toplam_maliyet / toplam_adet
             if p_turu == "Has Gram (24A)":
@@ -218,5 +220,3 @@ else:
             st.caption(f"Yarım Altın: {yarim_altin:,.2f} TL")
             st.caption(f"Tam (Ziynet) Altın: {tam_altin:,.2f} TL")
         with c3:
-            st.metric("Ata (Cumhuriyet) Altın", f"{ata_altin:,.2f} TL")
-s
