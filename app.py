@@ -4,23 +4,21 @@ import pandas as pd
 import ta
 import time
 import random
-import os
 from datetime import datetime
 from google import genai
+from google.genai import types
 
 # Web sitesinin tarayıcı sekme ayarları
 st.set_page_config(page_title="Altın & Faiz Analiz Paneli", page_icon="💎", layout="wide")
 
-# YENİ GOOGLE AI AYARI (Gemini-3 Altyapısı)
-# Google AI Studio'daki kodda gördüğünüz şifreyi (API Key) aşağıda BURAYA_YAZ kısmındaki tırnakların içine yapıştırın
-API_KEY = "BURAYA_API_ANAHTARINI_YAZ"
-
+# Google'dan aldığınız API anahtarını doğrudan sisteme tanımlıyoruz
 try:
-    client = genai.Client(api_key=API_KEY)
-except Exception as e:
-    client = None
+    client = genai.Client(api_key=st.secrets.get("65536", ""))
+except:
+    pass
 
 def fed_kalan_sure():
+    # Bir sonraki FED faiz kararı: 29 Temmuz 2026 Saat 21:00 (TSİ)
     fed_tarihi = datetime(2026, 7, 29, 21, 0, 0)
     simdi = datetime.now()
     fark = fed_tarihi - simdi
