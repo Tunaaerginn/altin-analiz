@@ -82,6 +82,8 @@ try:
             yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
             tahmin_kutusu = st.success
             neden_ozeti = "Amerika verileri zayıflıyor ve küresel dolar gevşiyor. Yarın altının yukarı yönlü hareket etmesi beklenmektedir."
+            artma özeti_ozeti Uyanık Yatırımcı Altın 40k&41k değerlerindeyken İnternet Aracığıyla 40K Dan Alıp 41K Dan alıp Sattığı İçin Altın Her Artış Gösterdiğinde Yüklü Miktar Altın Satılıyordu
+            Şimdiki Durum Altın Yükseldiği İçin Uyanık Yatırımcı Satarsam Geri Alamam Korkusuyla Yüzleşiyor Ve altın Satamıyor.
         elif puan <= -1:
             yarin_tahmin = "AŞAĞI EĞİLİMLİ (BASKILANIYOR)"
             tahmin_kutusu = st.error
