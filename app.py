@@ -4,10 +4,21 @@ import pandas as pd
 import ta
 import time
 import random
+import os
 from datetime import datetime
+from google import genai
 
 # Web sitesinin tarayıcı sekme ayarları
 st.set_page_config(page_title="Altın & Faiz Analiz Paneli", page_icon="💎", layout="wide")
+
+# YENİ GOOGLE AI AYARI (Gemini-3 Altyapısı)
+# Google AI Studio'daki kodda gördüğünüz şifreyi (API Key) aşağıda BURAYA_YAZ kısmındaki tırnakların içine yapıştırın
+API_KEY = "BURAYA_API_ANAHTARINI_YAZ"
+
+try:
+    client = genai.Client(api_key=API_KEY)
+except Exception as e:
+    client = None
 
 def fed_kalan_sure():
     fed_tarihi = datetime(2026, 7, 29, 21, 0, 0)
@@ -34,7 +45,7 @@ st.title("💎 KÜRESEL ENTEGRASYONLU KAPALIÇARŞI & FAİZ BORSASI PANELİ")
 st.markdown(f"*{get_finans_mottosu()}*")
 st.markdown("---")
 
-sekme1, sekme2 = st.tabs(["📊 Canlı Takip Paneli", "🧠 Altın Bilgi Kütüphanesi"])
+sekme1, sekme2, sekme3 = st.tabs(["📊 Canlı Takip Paneli", "🧠 Altın Bilgi Kütüphanesi", "🤖 Yapay Zeka Danışmanı"])
 
 altin_ticker = yf.Ticker("GC=F")
 dolar_ticker = yf.Ticker("USDTRY=X")
@@ -121,7 +132,6 @@ else:
         else:
             st.sidebar.info(f"⏳ {hedef_gram} TL olması bekleniyor...")
     st.sidebar.markdown("---")
-
     st.sidebar.subheader("🧮 Altın Hesaplama Robotu")
     hesap_turu = st.sidebar.selectbox("Altın Türü Seçin:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"], key="calc_select")
     altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0, key="calc_input")
@@ -135,6 +145,7 @@ else:
         
     st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
     st.sidebar.markdown("---")
+
     st.sidebar.subheader("💼 Kademeli Alım Portföyüm")
     p_turu = st.sidebar.selectbox("Altın Türü:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select")
     
@@ -153,6 +164,7 @@ else:
     toplam_adet = ade1 + adet2 + adet3
     toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
     
+    # --- 1. SAYFA: CANLI TAKİP PANELİ İÇERİĞİ ---
     with sekme1:
         col_zaman, col_fed = st.columns(2)
         col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
@@ -231,33 +243,45 @@ else:
         st.header("🧠 Altın Fiyatlarını Belirleyen Temel Dinamikler")
         st.markdown("Altın fiyatlarının küresel borsalarda neden yön değiştirdiğini anlamak için aşağıdaki 12 kritik maddeyi inceleyebilirsiniz.")
         st.markdown("---")
-        
         col_artma, col_dusme = st.columns(2)
-        
         with col_artma:
             st.success("🚀 ALTIN FİYATLARINI ARTIRAN NEDENLER")
-            st.markdown("""
-            1. **Faiz İndirimleri:** FED faiz indirdiğinde, faiz getirisi azalan yatırımcılar altına yönelir.
-            2. **Jeopolitik Riskler:** Savaş, kriz veya küresel gerilim dönemlerinde altın 'güvenli liman' olarak talep görür.
-            3. **Yüksek Enflasyon:** Paranın alım gücü düştüğünde, yatırımcılar servetlerini korumak için fiziki altına sığınır.
-            4. **Zayıf ABD Doları (DXY Düşüşü):** Dolar endeksi değer kaybettiğinde, ons altın ucuzlar ve talep artar.
-            5. **Merkez Bankası Alımları:** Ülkelerin merkez bankaları piyasadan yüklü altın topladığında fiyatlar fırlar.
-            6. **Ekonomik Resesyon (Durgunluk):** Küresel borsalar çökerken yatırımcılar riskten kaçmak için hisse satıp altın alır.
-            """)
-            
+            st.markdown("1. **Faiz İndirimleri:** FED faiz indirdiğinde, altın yükselir.\n2. **Jeopolitik Riskler:** Savaş ve krizlerde talep artar.\n3. **Yüksek Enflasyon:** Paranın alım gücü düştüğünde altına sığınılır.\n4. **Zayıf ABD Doları (DXY Düşüşü):** Dolar gevşediğinde ons ucuzlar ve alım gelir.\n5. **Merkez Bankası Alımları:** Devletler rezerv için fiziki altın toplar.\n6. **Ekonomik Resesyon:** Borsalar çökerken güvenli liman parlar.")
         with col_dusme:
             st.error("📉 ALTIN FİYATLARINI DÜŞÜREN NEDENLER")
-            st.markdown("""
-            1. **Faiz Artışları:** FED faizleri yükselttiğinde, faiz altından daha cazip hale gelir ve altın satılır.
-            2. **Güçlü ABD Doları (DXY Yükselişi):** Dolar küresel olarak değer kazandığında ons altın pahalılaşır, alımlar düşer.
-            3. **Ekonomik Büyüme Pip ve İstikrar:** Piyasalar güvende hissettiğinde, yatırımcı güvenli limanı bırakıp borsaya geçer.
-            4. **Kâr Satışları (Teknik Düzeltme):** Altın çok sert yükselip zirve yaptığında, büyük fonlar kârı nakde çevirmek için satış başlatır.
-            5. **Kripto ve Alternatif Piyasalar:** Bitcoin gibi varlıklar ralli yaptığında, sıcak para altından kayabilir.
-            6. **Enflasyonun Kontrol Altına Alınması:** Sıkı politikalarla enflasyon düştüğünde, altının koruyucu rolüne ihtiyaç azalır.
-            """)
-            
-        st.markdown("---")
-        st.info("💡 **Bilgi Notu:** Altın piyasası tek bir maddeye göre değil, bu 12 maddenin birbiriyle olan dengesine göre şekillenir.")
+            st.markdown("1. **Faiz Artışları:** Faiz yükselirse altın satılır.\n2. **Güçlü ABD Doları:** Dolar endeksi fırlarsa ons baskılanır.\n3. **Ekonomik İstikrar:** Şirketler büyürse yatırımcı borsaya geçer.\n4. **Kâr Satışları:** Sert yükseliş sonrası fonlar kârı nakde çevirir.\n5. **Kripto Dünyası:** Sıcak para bazen dijital varlıklara kayar.\n6. **Düşük Enflasyon:** Enflasyon kontrol altına alınırsa altının kalkan rolü azalır.")
 
+    # --- 3. SAYFA: YAPAY ZEKA DANIŞMANI İÇERİĞİ ---
+    with sekme3:
+        st.header("🤖 Yapay Zeka Altın Danışmanı")
+        st.markdown("Aklınıza takılan tüm altın ve ekonomi sorularını danışmanınıza sorabilirsiniz. Sorduğunuz soru borsa verileriyle harmanlanarak yorumlanacaktır.")
+        
+        soru = st.text_input("Danışmanınıza sorun (Örn: Altın fiyatları ne olur? Satmalı mıyım?):", key="ai_soru_input")
+        
+        if soru:
+            with st.spinner("Danışmanınız borsa verilerini ve küresel haberleri analiz ediyor..."):
+                try:
+                    # Yapay zekaya güncel borsa verilerini gizli bilgi olarak önden veriyoruz
+                    bilgi_context = (
+                        f"Sen profesyonel bir altın ve serbest piyasa danışmanısın. "
+                        f"Şu anki borsa verileri şunlar: Canlı Ons Altın: {canli_ons}$, Has Gram Altın: {canli_gram:.2f} TL, "
+                        f"Çeyrek Altın: {ceyrek_altin:.2f} TL, Ata Altın: {ata_altin:.2f} TL, Dolar Kuru: {canli_dolar:.4f} TL, "
+                        f"Dolar Endeksi (DXY): {canli_dxy}. "
+                        f"Yarınki tahminimize göre yönümüz: {yarin_tahmin}. "
+                        f"Google Arama motorun aktiftir, internetteki en güncel finans haberlerini tarayabilirsin. "
+                        f"Kullanıcıya kesin bir yatırım tavsiyesi vermeden (YTD uyarısıyla), finansal verilere dayanarak dost canlısı, "
+                        f"anlaşılır ve net bir cevap ver. Kullanıcının sorusu şu: "
+                    )
+                    
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    cevap = model.generate_content(bilgi_context + soru)
+                    st.write("---")
+                    st.markdown(f"### 💬 Danışmanınızın Yanıtı:")
+                    st.info(cevap.text)
+                    st.caption("⚠️ Not: Yapay zeka danışmanının ürettiği yanıtlar borsa verilerine dayalı analizler olup kesinlikle resmi yatırım tavsiyesi niteliği taşımamaktadır.")
+                except Exception as ai_error:
+                    st.error("Yapay zeka motoruna bağlanırken bir sorun oluştu. Lütfen API anahtarınızı kontrol edin.")
+
+# Kodun sürekli taze fiyat çekmesini sağlayan döngü
 time.sleep(5)
 st.rerun()
