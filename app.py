@@ -138,7 +138,7 @@ else:
     col_dxy.metric("Canlı Dolar Endeksi (DXY)", f"{canli_dxy:.2f}")
     st.markdown("---")
 
-    # --- YAN MENÜ: ALARM, HESAPLAYICI VE PORTFÖY ---
+    # --- YAN MENÜ: TEMİZLENMİŞ ALARM, HESAPLAYICI VE KADEMELİ PORTFÖY ---
     st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
     hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0, key="alarm_input")
     if hedef_gram > 0:
@@ -162,13 +162,50 @@ else:
     st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
     st.sidebar.markdown("---")
 
-    st.sidebar.subheader("💼 Dijital Portföyüm (Kayıtlı)")
-    p_gram = st.sidebar.number_input("Eldeki Has Gram (24A):", min_value=0.0, value=0.0, step=1.0, key="p_gram_val")
-    p_ceyrek = st.sidebar.number_input("Eldeki Çeyrek (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ceyrek_val")
-    p_ata = st.sidebar.number_input("Eldeki Ata (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ata_val")
+    # KADEMELİ KÂR-ZARAR PORTFÖYÜ (TEMİZLENDİ)
+    st.sidebar.subheader("💼 Kademeli Alım Portföyüm")
+    p_turu = st.sidebar.selectbox("Altın Türü:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select")
     
-    portfoy_toplam = (p_gram * canli_gram) + (p_ceyrek * ceyrek_altin) + (p_ata * ata_altin)
-    st.sidebar.metric("📊 Toplam Portföy Değeriniz", f"{portfoy_toplam:,.2f} TL")
+    st.sidebar.markdown("**1. Parça Alım**")
+    adet1 = st.sidebar.number_input("Miktar 1:", min_value=0.0, value=0.0, step=1.0, key="a1")
+    fiyat1 = st.sidebar.number_input("Alış Fiyatı 1:", min_value=0.0, value=0.0, step=10.0, key="f1")
+    
+    st.sidebar.markdown("**2. Parça Alım**")
+    adet2 = st.sidebar.number_input("Miktar 2:", min_value=0.0, value=0.0, step=1.0, key="a2")
+    fiyat2 = st.sidebar.number_input("Alış Fiyatı 2:", min_value=0.0, value=0.0, step=10.0, key="f2")
+
+    st.sidebar.markdown("**3. Parça Alım**")
+    adet3 = st.sidebar.number_input("Miktar 3:", min_value=0.0, value=0.0, step=1.0, key="a3")
+    fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, step=10.0, key="f3")
+    
+    toplam_adet = adet1 + adet2 + adet3
+    toplam_maliyet = (adet1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
+    
+    if toplam_adet > 0 and toplam_maliyet > 0:
+        ortalama_maliyet = toplam_maliyet / toplam_adet
+        
+        # Güncel borsa fiyat eşleşmesi
+        if p_turu == "Has Gram (24A)":
+            guncel_tek_fiyat = canli_gram
+        elif p_turu == "Çeyrek Altın":
+            guncel_tek_fiyat = ceyrek_altin
+        else:
+            guncel_tek_fiyat = ata_altin
+            
+        anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
+        kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
+        kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
+        
+        st.sidebar.markdown("---")
+        st.sidebar.metric("📊 Güncel Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
+        st.sidebar.text(f"Toplam Miktar: {toplam_adet:,.2f}")
+        st.sidebar.text(f"Ort. Maliyet: {ortalama_maliyet:,.2f} TL")
+        
+        if kar_zarar_tl >= 0:
+            st.sidebar.success(f"🟢 KÂRDASINIZ!\n\n Net Kâr: +{kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
+        else:
+            st.sidebar.error(f"🔴 ZARARDASINIZ!\n\n Net Zarar: {kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
+            
     st.sidebar.markdown("---")
 
     # Kapalıçarşı Fiyatları
@@ -188,31 +225,5 @@ else:
 
     # Kısa Vadeli Tahmin
     st.subheader("🔮 Yarın İçin Kısa Vadeli Net Tahmin")
-    tahmin_kutusu(f"**Yön:** {yarin_tahmin} \n\n {neden_ozeti}")
-    st.markdown("---")
-
-    # İnteraktif Teknik Analiz Grafiği
-    st.subheader("📈 Ons Altın & SMA20 Grafik Analizi (Son 60 Gün)")
-    df_grafik = df_ons[['Close', 'SMA20']].rename(columns={'Close': 'Ons Kapanış Fiyatı ($)', 'SMA20': '20 Günlük Ortalama (SMA20)'})
-    st.line_chart(df_grafik)
-    st.markdown("---")
-
-    # Karşılaştırma Tablosu
-    st.subheader("🇺🇸 Amerika Piyasası Veri Karşılaştırması")
-    data_karsilastirma = {
-        "Tarih / Veri": [f"Dün ({dun_tarih})", f"Bugün ({bugun_tarih})"],
-        "Ons Altın ($)": [f"${dun_ons:,.2f}", f"${canli_ons:,.2f}"],
-        "Dolar Endeksi (DXY)": [f"{dun_dxy:.2f}", f"{canli_dxy:.2f}"]
-    }
-    st.table(pd.DataFrame(data_karsilastirma))
-    st.markdown("---")
-
-    # Banka Faiz Oranları
-    st.subheader("🏦 Bankaların Güncel Mevduat Faiz Yüzdeleri (32 Gün)")
-    df_banka = pd.DataFrame(bankalar)
-    df_banka.columns = ["Banka Adı", "Hoş Geldin Faizi (%)", "Standart Faiz (%)"]
-    st.dataframe(df_banka, use_container_width=True)
-
-# Kodun sürekli taze fiyat çekmesini sağlayan döngü
-time.sleep(5)
-st.rerun()
+    st.markdown(f"**Yön:** {yarin_tahmin}")
+    tahmin_kutusu(neden_ozeti)
