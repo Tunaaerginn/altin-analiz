@@ -1,4 +1,4 @@
-import streamlit as st
+code = """import streamlit as st
 import yfinance as yf
 import pandas as pd
 import ta
@@ -128,6 +128,7 @@ with sekme1:
 
             # Zaman ve Fed Sayacı Bandı
             col_zaman, col_fed = st.columns(2)
+            anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
             col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
             col_fed.metric("🎯 FED Faiz Kararına", fed_sayaci)
             st.markdown("---")
@@ -202,3 +203,95 @@ with sekme1:
                 st.sidebar.text(f"Toplam Adet: {toplam_adet:,.2f}")
                 st.sidebar.text(f"Ort. Maliyetiniz: {ortalama_maliyet:,.2f} TL")
                 
+                if kar_zarar_tl >= 0:
+                    st.sidebar.success(f"🟢 KÂRDASINIZ!\n\n Net Kâr: +{kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
+                else:
+                    st.sidebar.error(f"🔴 ZARARDASINIZ!\n\n Net Zarar: {kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
+            st.sidebar.markdown("---")
+
+            # Kapalıçarşı Fiyatları
+            st.subheader("💰 Gram ve Sarrafiye Fiyatları")
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.metric("Has Altın (24 Ayar)", f"{canli_gram:,.2f} TL")
+                st.caption(f"22 Ayar Gram Altın: {altin_22_ayar:,.2f} TL")
+            with c2:
+                st.metric("Çeyrek Altın", f"{ceyrek_altin:,.2f} TL")
+                st.caption(f"Yarım Altın: {yarim_altin:,.2f} TL")
+                st.caption(f"Tam (Ziynet) Altın: {tam_altin:,.2f} TL")
+            with c3:
+                st.metric("Ata (Cumhuriyet) Altın", f"{ata_altin:,.2f} TL")
+                st.caption(f"Reşat Altın: {resat_altin:,.2f} TL")
+            st.markdown("---")
+
+            # Kısa Vadeli Tahmin
+            st.subheader("🔮 Yarın İçin Kısa Vadeli Net Tahmin")
+            tahmin_kutusu(f"**Yön:** {yarin_tahmin} \n\n {neden_ozeti}")
+            st.markdown("---")
+
+            # İnteraktif Teknik Analiz Grafiği
+            st.subheader("📈 Ons Altın & SMA20 Grafik Analizi (Son 60 Gün)")
+            df_grafik = df_ons[['Close', 'SMA20']].rename(columns={'Close': 'Ons Kapanış Fiyatı ($)', 'SMA20': '20 Günlük Ortalama (SMA20)'})
+            st.line_chart(df_grafik)
+            st.markdown("---")
+
+            # Karşılaştırma Tablosu
+            st.subheader("🇺🇸 Amerika Piyasası Veri Karşılaştırması")
+            data_karsilastirma = {
+                "Tarih / Veri": [f"Dün ({dun_tarih})", f"Bugün ({bugun_tarih})"],
+                "Ons Altın ($)": [f"${dun_ons:,.2f}", f"${canli_ons:,.2f}"],
+                "Dolar Endeksi (DXY)": [f"{dun_dxy:.2f}", f"{canli_dxy:.2f}"]
+            }
+            st.table(pd.DataFrame(data_karsilastirma))
+            st.markdown("---")
+
+            # Banka Faiz Oranları
+            st.subheader("🏦 Bankaların Güncel Mevduat Faiz Yüzdeleri (32 Gün)")
+            df_banka = pd.DataFrame(bankalar)
+            df_banka.columns = ["Banka Adı", "Hoş Geldin Faizi (%)", "Standart Faiz (%)"]
+            st.dataframe(df_banka, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Sistemde bir hata oluştu: {str(e)}")
+
+# --- 2. SAYFA: ALTIN BİLGİ KÜTÜPHANESİ (ARTMA/DÜŞME NEDENLERİ) ---
+with sekme2:
+    st.header("🧠 Altın Fiyatlarını Belirleyen Temel Dinamikler")
+    st.markdown("Altın fiyatlarının küresel borsalarda neden yön değiştirdiğini anlamak için aşağıdaki 12 kritik maddeyi inceleyebilirsiniz.")
+    st.markdown("---")
+    
+    col_artma, col_dusme = st.columns(2)
+    
+    with col_artma:
+        st.success("🚀 ALTIN FİYATLARINI ARTIRAN NEDENLER")
+        st.markdown(\"\"\"
+        1. **Faiz İndirimleri:** Merkez bankaları (özellikle FED) faiz indirdiğinde, faiz getirisi azalan yatırımcılar altına yönelir.
+        2. **Jeopolitik Riskler:** Savaş, terör, siyasi kriz veya küresel gerilim dönemlerinde altın 'güvenli liman' olarak talep görür.
+        3. **Yüksek Enflasyon:** Paranın alım gücü düştüğünde, yatırımcılar servetlerini korumak için fiziki altına sığınır.
+        4. **Zayıf ABD Doları (DXY Düşüşü):** Küresel dolar endeksi değer kaybettiğinde, dolar cinsinden satılan ons altın ucuzlar og talep artar.
+        5. **Merkez Bankası Alımları:** Ülkelerin merkez bankaları rezervlerini güçlendirmek için piyasadan yüklü altın topladığında fiyatlar fırlar.
+        6. **Ekonomik Resesyon (Durgunluk):** Küresel borsalar ve şirket hisseleri çökerken yatırımcılar riskten kaçmak için hisse satıp altın alır.
+        \"\"\")
+        
+    with col_dusme:
+        st.error("📉 ALTIN FİYATLARINI DÜŞÜREN NEDENLER")
+        st.markdown(\"\"\"
+        1. **Faiz Artışları:** FED veya Avrupa Merkez Bankası faizleri yükselttiğinde, faiz altından daha cazip hale gelir ve altın satılır.
+        2. **Güçlü ABD Doları (DXY Yükselişi):** Dolar küresel olarak değer kazandığında ons altın diğer para birimleri için pahalılaşır, alımlar azalır.
+        3. **Ekonomik Büyüme ve İstikrar:** Şiriket kârlılıkları arttığında ve piyasalar güvende hissettiğinde, yatırımcı altını bırakıp borsaya (hisselere) geçer.
+        4. **Kâr Satışları (Teknik Düzeltme):** Altın çok sert yükselip zirve yaptığında, büyük fonlar kârı nakde çevirmek için yüklü satışlar yapar.
+        5. **Kripto ve Alternatif Piyasalar:** Bitcoin veya diğer riskli varlıklar çok sert ralli yaptığında, genç yatırımcı parayı altından çekebilir.
+        6. **Enflasyonun Kontrol Altına Alınması:** Sıkı para politikalarıyla küresel enflasyon düştüğünde, altının koruyucu kalkan rolüne ihtiyaç azalır.
+        \"\"\")
+        
+    st.markdown("---")
+    st.info("💡 **Unutmayın:** Altın piyasası tek bir maddeye göre değil, bu 12 maddenin birbiriyle olan dengesine ve psikolojik yatırımcı algısına göre şekillenir.")
+
+# Kodun sürekli taze fiyat çekmesini sağlayan döngü
+time.sleep(5)
+st.rerun()"""
+try:
+    compile(code, "app.py", "exec")
+    print("No syntax error found in full code logic.")
+except SyntaxError as e:
+    print(f"Error: {e}")
