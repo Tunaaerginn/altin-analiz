@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import ta
 import time
+import random
 from datetime import datetime
 
 # Web sitesinin tarayıcı sekme ayarları
@@ -20,8 +21,20 @@ def fed_kalan_sure():
         return f"{gun} Gün, {saat} Saat, {dakika} Dk"
     return "Açıklanıyor/Açıklandı"
 
+# Yeni Özellik 1: Rastgele Günlük Finans Mottosu Fonksiyonu
+def get_finans_mottosu():
+    mottolar = [
+        "💰 'Fiyat ödediğiniz şeydir, değer ise aldığınız şey.' - Warren Buffett",
+        "⚖️ Altın sabırlı yatırımcıyı sever, ani kararlar kaybettirir.",
+        "📊 Trende karşı işlem yapmayın, teknik göstergeleri mutlaka takip edin.",
+        "🛡️ Portföy çeşitlendirmesi en büyük kalkanınızdır; tüm yumurtaları aynı sepete koymayınız.",
+        "🚀 Akıllı yatırımcı piyasa düşerken fırsat kollayandır."
+    ]
+    return random.choice(mottolar)
+
 # Başlık ve Üst Bilgi
 st.title("💎 KÜRESEL ENTEGRASYONLU KAPALIÇARŞI & FAİZ BORSASI PANELİ")
+st.markdown(f"*{get_finans_mottosu()}*")
 st.markdown("---")
 
 try:
@@ -56,7 +69,7 @@ try:
         ceyrek_altin = canli_gram * 1.754 * 0.916
         yarim_altin  = ceyrek_altin * 2
         tam_altin    = ceyrek_altin * 4
-        ata_altin    = canli_gram * 7.216 * 0.916 # Ata altın tam kalibrasyon formülü
+        ata_altin    = canli_gram * 7.216 * 0.916 
         resat_altin  = canli_gram * 7.216 * 0.916 * 0.998
 
         ons_degisim = ((canli_ons - dun_ons) / dun_ons) * 100
@@ -82,9 +95,10 @@ try:
             yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
             tahmin_kutusu = st.success
             neden_ozeti = (
-                "Amerika verileri zayıflıyor ve küresel dolar gevşiyor. Yarın altının yukarı yönlü hareket etmesi beklenmektedir.\n\n"
+                "Küresel piyasalarda teknik göstergeler (RSI ve Hareketli Ortalamalar) yukarı yönlü momentumu destekliyor. "
+                "Ons altındaki talep artışı ve destek seviyelerinin korunması, kısa vadeli yukarı yönlü eğilimi güçlendirmektedir.\n\n"
                 "**Uyanık Yatırımcı Özeti:** Altın 40k & 41k değerlerindeyken internet aracılığıyla 40K'dan alıp 41K'dan satıp kâr ettiği için, "
-                "altın her artış gösterdiğinde yüklü miktarda altın satılıyordu. "
+                "altın her artış gösterdiğinde yüklü miktarda altın satılıyordu.\n\n"
                 "**Şimdiki Durum:** Altın hızla yükseldiği için uyanık yatırımcı 'Satarsam bir daha bu fiyattan geri alamam' korkusuyla "
                 "yüzleşiyor ve elindeki altını satmaya cesaret edemiyor."
             )
@@ -125,6 +139,30 @@ try:
         col_dxy.metric("Canlı Dolar Endeksi (DXY)", f"{canli_dxy:.2f}")
         st.markdown("---")
 
+        # Yeni Özellik 2: Canlı Fiyat Alarm Sistemi (Arayüz Üst Bölgesi)
+        st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
+        hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0)
+        if hedef_gram > 0:
+            if canli_gram >= hedef_gram:
+                st.sidebar.success(f"🔔 ALARM: Has Gram Altın ({canli_gram:,.2f} TL) belirlediğiniz {hedef_gram} TL hedefine ulaştı veya geçti!")
+            else:
+                st.sidebar.info(f"⏳ Alarm kuruldu. Gram altının {hedef_gram} TL olması bekleniyor...")
+        
+        # Yeni Özellik 3: Altın Hesaplama Robotu (Yan Menü)
+        st.sidebar.subheader("🧮 Altın Hesaplama Robotu")
+        hesap_turu = st.sidebar.selectbox("Altın Türü Seçin:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"])
+        altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0)
+        
+        if hesap_turu == "Has Gram (24A)":
+            toplam_tl = altin_miktari * canli_gram
+        elif hesap_turu == "Çeyrek Altın":
+            toplam_tl = altin_miktari * ceyrek_altin
+        else:
+            toplam_tl = altin_miktari * ata_altin
+            
+        st.sidebar.metric(f"Toplam Tutar ({hesap_turu})", f"{toplam_tl:,.2f} TL")
+        st.sidebar.markdown("---")
+
         # Kapalıçarşı Fiyatları
         st.subheader("💰 Gram ve Sarrafiye Fiyatları")
         c1, c2, c3 = st.columns(3)
@@ -143,6 +181,12 @@ try:
         # Kısa Vadeli Tahmin
         st.subheader("🔮 Yarın İçin Kısa Vadeli Net Tahmin")
         tahmin_kutusu(f"**Yön:** {yarin_tahmin} \n\n {neden_ozeti}")
+        st.markdown("---")
+
+        # Yeni Özellik 4: İnteraktif Teknik Analiz Grafiği
+        st.subheader("📈 Ons Altın & SMA20 Grafik Analizi (Son 60 Gün)")
+        df_grafik = df_ons[['Close', 'SMA20']].rename(columns={'Close': 'Ons Kapanış Fiyatı ($)', 'SMA20': '20 Günlük Ortalama (SMA20)'})
+        st.line_chart(df_grafik)
         st.markdown("---")
 
         # Karşılaştırma Tablosu
