@@ -81,9 +81,13 @@ try:
         if puan >= 1:
             yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
             tahmin_kutusu = st.success
-            neden_ozeti = "Amerika verileri zayıflıyor ve küresel dolar gevşiyor. Yarın altının yukarı yönlü hareket etmesi beklenmektedir."
-            artma özeti_ozeti Uyanık Yatırımcı Altın 40k&41k değerlerindeyken İnternet Aracığıyla 40K Dan Alıp 41K Dan alıp Sattığı İçin Altın Her Artış Gösterdiğinde Yüklü Miktar Altın Satılıyordu
-            Şimdiki Durum Altın Yükseldiği İçin Uyanık Yatırımcı Satarsam Geri Alamam Korkusuyla Yüzleşiyor Ve altın Satamıyor.
+            neden_ozeti = (
+                "Amerika verileri zayıflıyor ve küresel dolar gevşiyor. Yarın altının yukarı yönlü hareket etmesi beklenmektedir.\n\n"
+                "**Uyanık Yatırımcı Özeti:** Altın 40k & 41k değerlerindeyken internet aracılığıyla 40K'dan alıp 41K'dan satıp kâr ettiği için, "
+                "altın her artış gösterdiğinde yüklü miktarda altın satılıyordu. "
+                "**Şimdiki Durum:** Altın hızla yükseldiği için uyanık yatırımcı 'Satarsam bir daha bu fiyattan geri alamam' korkusuyla "
+                "yüzleşiyor ve elindeki altını satmaya cesaret edemiyor."
+            )
         elif puan <= -1:
             yarin_tahmin = "AŞAĞI EĞİLİMLİ (BASKILANIYOR)"
             tahmin_kutusu = st.error
@@ -138,7 +142,7 @@ try:
 
         # Kısa Vadeli Tahmin
         st.subheader("🔮 Yarın İçin Kısa Vadeli Net Tahmin")
-        tahmin_kutusu(f"**Yön:** {yarin_tahmin} \n\n **Özet Gerekçe:** {neden_ozeti}")
+        tahmin_kutusu(f"**Yön:** {yarin_tahmin} \n\n {neden_ozeti}")
         st.markdown("---")
 
         # Karşılaştırma Tablosu
