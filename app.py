@@ -21,7 +21,7 @@ def fed_kalan_sure():
         return f"{gun} Gün, {saat} Saat, {dakika} Dk"
     return "Açıklanıyor/Açıklandı"
 
-# Yeni Özellik 1: Rastgele Günlük Finans Mottosu Fonksiyonu
+# Günlük Finans Mottosu Fonksiyonu
 def get_finans_mottosu():
     mottolar = [
         "💰 'Fiyat ödediğiniz şeydir, değer ise aldığınız şey.' - Warren Buffett",
@@ -102,7 +102,7 @@ try:
                 "**Şimdiki Durum:** Altın hızla yükseldiği için uyanık yatırımcı 'Satarsam bir daha bu fiyattan geri alamam' korkusuyla "
                 "yüzleşiyor ve elindeki altını satmaya cesaret edemiyor."
             )
-        elif puan <= -1:
+        elif puand <= -1:
             yarin_tahmin = "AŞAĞI EĞİLİMLİ (BASKILANIYOR)"
             tahmin_kutusu = st.error
             neden_ozeti = "ABD Dolar Endeksi güçlü kalmaya devam ediyor ve teknik düzeltme başladı. Yarın altının kâr satışlarıyla geri çekilmesi beklenmektedir."
@@ -139,19 +139,22 @@ try:
         col_dxy.metric("Canlı Dolar Endeksi (DXY)", f"{canli_dxy:.2f}")
         st.markdown("---")
 
-        # Yeni Özellik 2: Canlı Fiyat Alarm Sistemi (Arayüz Üst Bölgesi)
+        # --- YAN MENÜ: ALARM, HESAPLAYICI VE PORTFÖY ---
+        
+        # Fiyat Alarm Sistemi
         st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
-        hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0)
+        hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0, key="alarm_input")
         if hedef_gram > 0:
             if canli_gram >= hedef_gram:
-                st.sidebar.success(f"🔔 ALARM: Has Gram Altın ({canli_gram:,.2f} TL) belirlediğiniz {hedef_gram} TL hedefine ulaştı veya geçti!")
+                st.sidebar.success(f"🔔 ALARM: Has Gram Altın ({canli_gram:,.2f} TL) hedefinize ulaştı!")
             else:
-                st.sidebar.info(f"⏳ Alarm kuruldu. Gram altının {hedef_gram} TL olması bekleniyor...")
-        
-        # Yeni Özellik 3: Altın Hesaplama Robotu (Yan Menü)
+                st.sidebar.info(f"⏳ {hedef_gram} TL olması bekleniyor...")
+        st.sidebar.markdown("---")
+
+        # Altın Hesaplama Robotu
         st.sidebar.subheader("🧮 Altın Hesaplama Robotu")
-        hesap_turu = st.sidebar.selectbox("Altın Türü Seçin:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"])
-        altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0)
+        hesap_turu = st.sidebar.selectbox("Altın Türü Seçin:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"], key="calc_select")
+        altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0, key="calc_input")
         
         if hesap_turu == "Has Gram (24A)":
             toplam_tl = altin_miktari * canli_gram
@@ -160,7 +163,19 @@ try:
         else:
             toplam_tl = altin_miktari * ata_altin
             
-        st.sidebar.metric(f"Toplam Tutar ({hesap_turu})", f"{toplam_tl:,.2f} TL")
+        st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
+        st.sidebar.markdown("---")
+
+        # YENİ ÖZELLİK: Cihaza Kayıtlı Dinamik Portföyüm Bölümü
+        st.sidebar.subheader("💼 Dijital Portföyüm (Kayıtlı)")
+        
+        # Form elemanları sayesinde her 5 saniyede bir sayfayı yenilerken yazma işlemi kesintiye uğramaz
+        p_gram = st.sidebar.number_input("Eldeki Has Gram (24A):", min_value=0.0, value=0.0, step=1.0, key="p_gram_val")
+        p_ceyrek = st.sidebar.number_input("Eldeki Çeyrek (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ceyrek_val")
+        p_ata = st.sidebar.number_input("Eldeki Ata (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ata_val")
+        
+        portfoy_toplam = (p_gram * canli_gram) + (p_ceyrek * ceyrek_altin) + (p_ata * ata_altin)
+        st.sidebar.metric("📊 Toplam Portföy Değeriniz", f"{portfoy_toplam:,.2f} TL")
         st.sidebar.markdown("---")
 
         # Kapalıçarşı Fiyatları
@@ -183,7 +198,7 @@ try:
         tahmin_kutusu(f"**Yön:** {yarin_tahmin} \n\n {neden_ozeti}")
         st.markdown("---")
 
-        # Yeni Özellik 4: İnteraktif Teknik Analiz Grafiği
+        # İnteraktif Teknik Analiz Grafiği
         st.subheader("📈 Ons Altın & SMA20 Grafik Analizi (Son 60 Gün)")
         df_grafik = df_ons[['Close', 'SMA20']].rename(columns={'Close': 'Ons Kapanış Fiyatı ($)', 'SMA20': '20 Günlük Ortalama (SMA20)'})
         st.line_chart(df_grafik)
@@ -201,13 +216,3 @@ try:
 
         # Banka Faiz Oranları
         st.subheader("🏦 Bankaların Güncel Mevduat Faiz Yüzdeleri (32 Gün)")
-        df_banka = pd.DataFrame(bankalar)
-        df_banka.columns = ["Banka Adı", "Hoş Geldin Faizi (%)", "Standart Faiz (%)"]
-        st.dataframe(df_banka, use_container_width=True)
-
-except Exception as e:
-    st.error(f"Sistemde bir hata oluştu: {str(e)}")
-
-# Kodun sürekli taze fiyat çekmesini sağlayan döngü
-time.sleep(5)
-st.rerun()
