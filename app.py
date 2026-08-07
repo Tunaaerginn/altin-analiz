@@ -138,7 +138,7 @@ else:
     col_dxy.metric("Canlı Dolar Endeksi (DXY)", f"{canli_dxy:.2f}")
     st.markdown("---")
 
-    # --- YAN MENÜ: ALARM, HESAPLAYICI VE PORTFÖY ---
+    # --- YAN MENÜ: ALARM, HESAPLAYICI VE GELİŞMİŞ PORTFÖY ---
     st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
     hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0, key="alarm_input")
     if hedef_gram > 0:
@@ -162,13 +162,37 @@ else:
     st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
     st.sidebar.markdown("---")
 
-    st.sidebar.subheader("💼 Dijital Portföyüm (Kayıtlı)")
-    p_gram = st.sidebar.number_input("Eldeki Has Gram (24A):", min_value=0.0, value=0.0, step=1.0, key="p_gram_val")
-    p_ceyrek = st.sidebar.number_input("Eldeki Çeyrek (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ceyrek_val")
-    p_ata = st.sidebar.number_input("Eldeki Ata (Adet):", min_value=0.0, value=0.0, step=1.0, key="p_ata_val")
+    # Kâr-Zarar Hesaplamalı Gelişmiş Portföy Alanı
+    st.sidebar.subheader("💼 Kâr / Zarar Takipli Portföyüm")
     
-    portfoy_toplam = (p_gram * canli_gram) + (p_ceyrek * ceyrek_altin) + (p_ata * ata_altin)
-    st.sidebar.metric("📊 Toplam Portföy Değeriniz", f"{portfoy_toplam:,.2f} TL")
+    # Seçim Alanı
+    p_turu = st.sidebar.selectbox("Varlık Seçin:", ["Has Gram (24A)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select")
+    p_adet = st.sidebar.number_input("Eldeki Miktar (Adet/Gram):", min_value=0.0, value=0.0, step=1.0, key="p_adet_input")
+    p_maliyet = st.sidebar.number_input("Alış Fiyatınız (1 Adet/Gram TL):", min_value=0.0, value=0.0, step=10.0, key="p_maliyet_input")
+    
+    if p_adet > 0 and p_maliyet > 0:
+        toplam_maliyet = p_adet * p_maliyet
+        
+        # Anlık değere göre güncel fiyat atama
+        if p_turu == "Has Gram (24A)":
+            guncel_tek_fiyat = canli_gram
+        elif p_turu == "Çeyrek Altın":
+            guncel_tek_fiyat = ceyrek_altin
+        else:
+            guncel_tek_fiyat = ata_altin
+            
+        anlik_toplam_deger = p_adet * guncel_tek_fiyat
+        kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
+        kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
+        
+        st.sidebar.metric("📊 Güncel Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
+        st.sidebar.text(f"Toplam Yatırılan: {toplam_maliyet:,.2f} TL")
+        
+        if kar_zarar_tl >= 0:
+            st.sidebar.success(f"🟢 KÂRDASINIZ!\n\n Net Kâr: +{kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
+        else:
+            st.sidebar.error(f"🔴 ZARARDASINIZ!\n\n Net Zarar: {kar_zarar_tl:,.2f} TL \n\n Oran: %{kar_zarar_yuzde:,.2f}")
+            
     st.sidebar.markdown("---")
 
     # Kapalıçarşı Fiyatları
@@ -205,14 +229,3 @@ else:
         "Dolar Endeksi (DXY)": [f"{dun_dxy:.2f}", f"{canli_dxy:.2f}"]
     }
     st.table(pd.DataFrame(data_karsilastirma))
-    st.markdown("---")
-
-    # Banka Faiz Oranları
-    st.subheader("🏦 Bankaların Güncel Mevduat Faiz Yüzdeleri (32 Gün)")
-    df_banka = pd.DataFrame(bankalar)
-    df_banka.columns = ["Banka Adı", "Hoş Geldin Faizi (%)", "Standart Faiz (%)"]
-    st.dataframe(df_banka, use_container_width=True)
-
-# Kodun sürekli taze fiyat çekmesini sağlayan döngü
-time.sleep(5)
-st.rerun()
