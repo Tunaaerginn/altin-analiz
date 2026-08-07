@@ -28,7 +28,7 @@ try:
     # 1. CANLI VERİLERİ KÜRESEL BORSALARDAN ALMA
     altin_ticker = yf.Ticker("GC=F")
     dolar_ticker = yf.Ticker("USDTRY=X")
-    dx_ticker = yf.Ticker("DX-Y.NYB") # ABD Dolar Endeksi (DXY)
+    dx_ticker = yf.Ticker("DX-Y.NYB")
     
     df_ons = altin_ticker.history(period="60d", interval="1d")
     df_dolar = dolar_ticker.history(period="5d", interval="1d")
@@ -50,14 +50,14 @@ try:
         dun_ons = df_ons['Close'].iloc[-2]
         dun_dxy = df_dxy['Close'].iloc[-2]
 
-        # Türkiye piyasası kalibre edilmiş fiyatları
+        # Türkiye piyasası tam kalibre edilmiş fiyatları (Harem ve Kuyumcular Odası Formülü)
         canli_gram = (canli_ons / 31.1034768) * canli_dolar
         altin_22_ayar = canli_gram * 0.916
-        ceyrek_altin = canli_gram * 1.635
+        ceyrek_altin = canli_gram * 1.754 * 0.916
         yarim_altin  = ceyrek_altin * 2
         tam_altin    = ceyrek_altin * 4
-        ata_altin    = canli_gram * 6.721
-        resat_altin  = canli_gram * 6.735
+        ata_altin    = canli_gram * 7.216 * 0.916 # Ata altın tam kalibrasyon formülü
+        resat_altin  = canli_gram * 7.216 * 0.916 * 0.998
 
         ons_degisim = ((canli_ons - dun_ons) / dun_ons) * 100
 
@@ -81,7 +81,7 @@ try:
         if puan >= 1:
             yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
             tahmin_kutusu = st.success
-            neden_ozeti = "Fed Faizin Artmıyacağını Açıkladı Faizciler Altına Geçiyor Ve Emlak&Altın Piyasasını Güçlendiriyor."
+            neden_ozeti = "Amerika verileri zayıflıyor ve küresel dolar gevşiyor. Yarın altının yukarı yönlü hareket etmesi beklenmektedir."
         elif puan <= -1:
             yarin_tahmin = "AŞAĞI EĞİLİMLİ (BASKILANIYOR)"
             tahmin_kutusu = st.error
@@ -107,7 +107,7 @@ try:
         
         # Zaman ve Fed Sayacı Bandı
         col_zaman, col_fed = st.columns(2)
-        col_zaman.metric("🕒 Sistem Zamanı", anlik_zaman)
+        col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
         col_fed.metric("🎯 FED Faiz Kararına", fed_sayaci)
         st.markdown("---")
 
@@ -158,6 +158,6 @@ try:
 except Exception as e:
     st.error(f"Sistemde bir hata oluştu: {str(e)}")
 
-# Sayfayı her 5 saniyede bir otomatik yenilemek için
+# Kodun sürekli taze fiyat çekmesini sağlayan döngü
 time.sleep(5)
 st.rerun()
