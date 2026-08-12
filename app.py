@@ -170,3 +170,102 @@ fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, 
 
 toplam_adet = ade1 + adet2 + adet3
 toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
+### --- 1. SAYFA: CANLI TAKİP PANELİ İÇERİĞİ ---
+
+with sekme1:
+col_zaman, col_fed = st.columns(2)
+col_zaman.metric("🕒 Canlı Sistem Zamanı (5s Yenilenir)", anlik_zaman)
+col_fed.metric("🎯 FED Faiz Kararına", fed_sayaci)
+st.markdown("---") 
+
+if toplam_adet > 0 and toplam_maliyet > 0:
+ortalama_maliyet = toplam_maliyet / toplam_adet
+if p_turu == "Has Gram (24A)":
+guncel_tek_fiyat = canli_gram
+elif p_turu == "Çeyrek Altın":
+guncel_tek_fiyat = ceyrek_altin
+else:
+guncel_tek_fiyat = ata_altin
+anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
+kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
+kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
+
+st.subheader("💼 Anlık Portföy Durum Raporunuz")
+k_col1, k_col2, k_col3 = st.columns(3)
+k_col1.metric("Güncel Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
+k_col2.metric("Ortalama Maliyetiniz", f"{ortalama_maliyet:,.2f} TL", f"{toplam_adet} Adet")
+k_col3.metric("Net Kâr / Zarar", f"{kar_zarar_tl:,.2f} TL", f"{kar_zarar_yuzde:+.2f}%")
+st.markdown("---")
+
+### Fiyat Kartları Alanı
+
+st.subheader("📈 Küresel ve Yerel Canlı Göstergeler")
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("Ons Altın ($)", f"{canli_ons:,.2f}", f"{ons_degisim:+.2f}%")
+m2.metric("24K Fiziki Has Gram Altın", f"{canli_gram:,.2f} TL")
+m3.metric("USD / TRY", f"{canli_dolar:,.2f} TL")
+m4.metric("DXY (Dolar Endeksi)", f"{canli_dxy:,.2f}") 
+
+st.markdown("---")
+st.subheader("🏛️ Kapalıçarşı Serbest Piyasa Fiziki Altın Fiyatları")
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("22 Ayar Bilezik (Gram)", f"{altin_22_ayar:,.2f} TL")
+c2.metric("Çeyrek Altın", f"{ceyrek_altin:,.2f} TL")
+c3.metric("Ata Altın", f"{ata_altin:,.2f} TL")
+c4.metric("Reşat Altın", f"{resat_altin:,.2f} TL") 
+
+st.markdown("---")
+st.subheader("🔮 Algoritmik Trend Eğilim Analizi (Yarın Tahmini)")
+tahmin_kutusu(f"**Yarın İçin Yapay Eğilim Öngörüsü:** {yarin_tahmin}")
+st.info(f"**Teknik Analiz Gerekçesi:** {neden_ozeti}") 
+
+st.markdown("---")
+st.subheader("🏦 Banka Vadeli Mevduat Faiz Oranları (Net Getiri)")
+banka_df = pd.DataFrame(bankalar)
+banka_df.columns = ["Banka Adı", "Hoşgeldin Oranı (%)", "Standart Faiz Oranı (%)"]
+st.dataframe(banka_df, use_container_width=True) 
+
+### --- 2. SAYFA: ALTIN BİLGİ KÜTÜPHANESİ ---
+
+with sekme2:
+st.subheader("🧠 Temel Altın ve Finans Bilgileri")
+st.write("Yatırım yaparken bilmeniz gereken altın türleri, saflık oranları ve standartlar:") 
+
+info_df = pd.DataFrame({
+"Altın Türü": ["Has Altın (24 Ayar)", "22 Ayar Altın", "Ata / Cumhuriyet", "Çeyrek Altın"],
+"Milyem (Saflık)": ["0.995 / 0.999", "0.916", "0.916", "0.916"],
+"Ağırlık (Gram)": ["1.00g", "1.00g", "7.216g", "1.754g"],
+"Kullanım Alanı": ["Külçe / Gram Yatırım", "Bilezik / Takı", "Devlet Darphane Yatırım", "Yastıkaltı Birikim"]
+})
+st.table(info_df)
+st.markdown("💡 **RSI Nedir?** Göreceli Güç Endeksi, varlığın aşırı alınıp alınmadığını (65+ riskli) veya aşırı satılıp ucuzladığını (35- fırsat) gösteren bir momentum indikatörüdür.")
+### --- 3. SAYFA: YAPAY ZEKA DANIŞMANI ---
+
+with sekme3:
+st.subheader("🤖 Yapay Zeka Piyasa Yorumcusu (Gemini)")
+st.write("Anlık piyasa ve teknik indikatör verilerini Gemini modeline göndererek yatırım tavsiyesi içermeyen bir analiz raporu oluşturabilirsiniz.") 
+
+if st.button("✨ Yapay Zeka Analiz Raporu Oluştur"):
+if 'client' not in locals() or client is None:
+st.warning("⚠️ API Anahtarı bulunamadı veya tanımlanamadı. Lütfen secrets ayarlarınızı kontrol edin.")
+else:
+with st.spinner("Yapay zeka verileri yorumluyor, lütfen bekleyin..."):
+try:
+analiz_prompt = f"""
+Bir finansal analist gibi davran. Sana güncel piyasa verilerini iletiyorum:
+- Ons Altın fiyatı: {canli_ons} USD
+- Dolar/TL kuru: {canli_dolar} TRY
+- Has Gram Altın (24K) fiyatı: {canli_gram:.2f} TL
+- Dolar Endeksi (DXY): {canli_dxy}
+- Altın RSI Değeri (14 Günlük): {guncel_rsi:.2f}
+- Altın 20 Günlük Basit Hareketli Ortalama (SMA): {sma20:.2f}
+            Bu verilere dayanarak makroekonomik riskleri, altındaki aşırı alım/satım durumunu (RSI'a bakarak) ve gram altındaki gidişatı özetleyen, yatırım tavsiyesi içermeyen 3 kısa maddelik stratejik bir piyasa analizi yaz.
+            """
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=analiz_prompt,
+            )
+            st.success("📊 Yapay Zeka Analizi Tamamlandı!")
+            st.markdown(response.text)
+        except Exception as err:
+            st.error(f"Yapay zeka yanıtı üretilirken bir hata oluştu: {err}")
