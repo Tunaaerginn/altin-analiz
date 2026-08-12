@@ -6,7 +6,7 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from google import genai
+from google import genai 
 
 st.set_page_config(page_title="İZKO Destekli Altın & Faiz Paneli", page_icon="💎", layout="wide") 
 
@@ -164,15 +164,11 @@ fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, 
 
 toplam_adet = ade1 + adet2 + adet3
 toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
-### --- 1. SAYFA: CANLI TAKİP PANELİ İÇERİĞİ ---
-
 with sekme1:
 col_zaman, col_fed = st.columns(2)
 col_zaman.metric("🕒 Canlı Sistem Zamanı", anlik_zaman)
 col_fed.metric("🎯 Bir Sonraki FED Faiz Kararına", fed_sayaci)
 st.markdown("---") 
-
-### Portföy Durum Raporu Alanı
 
 if toplam_adet > 0 and toplam_maliyet > 0:
 ortalama_maliyet = toplam_maliyet / toplam_adet
@@ -181,8 +177,7 @@ guncel_tek_fiyat = canli_gram
 elif p_turu == "Çeyrek Altın":
 guncel_tek_fiyat = ceyrek_altin
 else:
-guncel_tek_fiyat = ata_altin 
-
+guncel_tek_fiyat = ata_altin
 anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
 kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
 kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
@@ -194,14 +189,12 @@ k_col2.metric("Ortalama Maliyetiniz", f"{ortalama_maliyet:,.2f} TL", f"{toplam_a
 k_col3.metric("Net Kâr / Zarar Statüsü", f"{kar_zarar_tl:,.2f} TL", f"{kar_zarar_yuzde:+.2f}%")
 st.markdown("---")
 
-### Fiyat Kartları
-
 st.subheader("📈 Küresel ve Yerel Anlık Göstergeler")
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Ons Altın ($)", f"{canli_ons:,.2f}", f"{ons_degisim:+.2f}%")
 m2.metric("İZKO Gram Altın", f"{canli_gram:,.2f} TL")
 m3.metric("USD / TRY", f"{canli_dolar:,.2f} TL")
-m4.metric("DXY (Dolar Endeksi)", f"{canli_dxy:,.2f}") 
+m4.metric("DXY (Dolar Endeksi)", f"{canli_dxy:,.2f}")
 
 st.markdown("---")
 st.subheader("🏛️ İzmir Kuyumcular Odası (İZKO) Fiziki Altın Fiyatları")
@@ -210,14 +203,12 @@ c1.metric("22 Ayar Bilezik (Gram)", f"{altin_22_ayar:,.2f} TL")
 c2.metric("Yeni Çeyrek Altın", f"{ceyrek_altin:,.2f} TL")
 c3.metric("Ata Altın", f"{ata_altin:,.2f} TL")
 c4.metric("Yeni Ziynet (Tam)", f"{tam_altin:,.2f} TL")
-st.caption("⚠️ Fiyatlar izko.org.tr üzerinden anlık olarak çekilmektedir ve bilgilendirme amaçlıdır.") 
+st.caption("⚠️ Fiyatlar izko.org.tr üzerinden anlık olarak çekilmektedir.")
 
 st.markdown("---")
 st.subheader("🔮 Algoritmik Trend Eğilim Analizi (Yarın Tahmini)")
 tahmin_kutusu(f"**Yarın İçin Yapay Eğilim Öngörüsü:** {yarin_tahmin}")
-st.info(f"**Teknik Analiz Gerekçesi:** {neden_ozeti}") 
-
-### --- 2. SAYFA: ALTIN BİLGİ KÜTÜPHANESİ ---
+st.info(f"**Teknik Analiz Gerekçesi:** {neden_ozeti}")
 
 with sekme2:
 st.subheader("🧠 Temel Altın ve Finans Bilgileri")
@@ -231,9 +222,7 @@ info_df = pd.DataFrame({
 })
 st.table(info_df)
 
-st.markdown("💡 **RSI Nedir?** Göreceli Güç Endeksi, varlığın aşırı alınıp alınmadığını (65+ riskli/pahalı) veya aşırı satılıp ucuzladığını (35- fırsat/ucuz) gösteren bir momentum indikatörüdür.")
-
-### --- 3. SAYFA: YAPAY ZEKA DANIŞMANI ---
+st.markdown("💡 **RSI Nedir?** Göreceli Güç Endeksi, varlığın aşırı alınıp alınmadığını (65+ riskli) veya aşırı satılıp ucuzladığını (35- fırsat) gösteren bir momentum indikatörüdür.")
 
 with sekme3:
 st.subheader("🤖 Gemini Yapay Zeka Piyasa Yorumcusu")
