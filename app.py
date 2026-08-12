@@ -5,13 +5,10 @@ import ta
 import random
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
-from google import genai
-st.set_page_config(page_title="İZKO Destekli Altın & Faiz Paneli", page_icon="💎", layout="wide")
-try:
-client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
-except Exception as e:
-client = None
+from datetime import datetime 
+
+st.set_page_config(page_title="İZKO Destekli Altın & Faiz Paneli", page_icon="💎", layout="wide") 
+
 def fed_kalan_sure():
 fed_tarihi = datetime(2026, 9, 16, 21, 0, 0)
 simdi = datetime.now()
@@ -21,7 +18,8 @@ gun = fark.days
 saat = fark.seconds // 3600
 dakika = (fark.seconds % 3600) // 60
 return f"{gun} Gün, {saat} Saat, {dakika} Dk"
-return "Açıklanıyor / Karar Günü"
+return "Açıklanıyor / Karar Günü" 
+
 def get_finans_mottosu():
 mottolar = [
 "💰 'Fiyat ödediğiniz şeydir, değer ise aldığınız şey.' - Warren Buffett",
@@ -30,7 +28,8 @@ mottolar = [
 "🛡️ Portföy çeşitlendirmesi en büyük kalkanınızdır; tüm yumurtaları aynı sepete koymayınız.",
 "🚀 Akıllı yatırımcı piyasa düşerken fırsat kollayandır."
 ]
-return random.choice(mottolar)
+return random.choice(mottolar) 
+
 @st.cache_data(ttl=300)
 def izko_fiyatlarini_cek():
 fiyatlar = {
@@ -56,38 +55,49 @@ except ValueError:
 continue
 return fiyatlar
 except Exception as e:
-return None
+return None 
+
 st.title("💎 İZMİR KUYUMCULAR ODASI (İZKO) ENTEGRASYONLU ANALİZ PANELİ")
 st.markdown(f"*{get_finans_mottosu()}*")
-st.markdown("---")
-sekme1, sekme2, sekme3 = st.tabs(["📊 Canlı Takip Paneli", "🧠 Altın Bilgi Kütüphanesi", "🤖 Yapay Zeka Danışmanı"])
+st.markdown("---") 
+
+sekme1, sekme2 = st.columns(2) if 'sekme1' not in locals() else (None, None)
+sekme1, sekme2 = st.tabs(["📊 Canlı Takip Paneli", "🧠 Altın Bilgi Kütüphanesi"]) 
+
 altin_ticker = yf.Ticker("GC=F")
 dolar_ticker = yf.Ticker("USDTRY=X")
-dx_ticker = yf.Ticker("DX-Y.NYB")
+dx_ticker = yf.Ticker("DX-Y.NYB") 
+
 df_ons = altin_ticker.history(period="60d", interval="1d")
 df_dolar = dolar_ticker.history(period="5d", interval="1d")
-df_dxy = dx_ticker.history(period="5d", interval="1d")
-izko_fiyatlari = izko_fiyatlarini_cek()
+df_dxy = dx_ticker.history(period="5d", interval="1d") 
+
+izko_fiyatlari = izko_fiyatlarini_cek() 
+
 if df_ons.empty or not izko_fiyatlari:
-st.error("⚠️ İZKO veya Küresel piyasa verileri çekilemedi! İnternet bağlantınızı kontrol edin.")
+st.error("⚠️ Veriler çekilemedi! İnternet bağlantınızı kontrol edin.")
 else:
 anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
-fed_sayaci = fed_kalan_sure()
+fed_sayaci = fed_kalan_sure() 
+
 canli_gram = izko_fiyatlari["Gram Altın"] if izko_fiyatlari["Gram Altın"] > 0 else ((float(df_ons['Close'].iloc[-1]) / 31.1034768) * float(df_dolar['Close'].iloc[-1]))
 altin_22_ayar = izko_fiyatlari["22 Ayar"]
 ceyrek_altin = izko_fiyatlari["Yeni Çeyrek"]
 yarim_altin  = izko_fiyatlari["Yeni Yarım"]
 tam_altin    = izko_fiyatlari["Yeni Ziynet"]
 ata_altin    = izko_fiyatlari["Ata Altın"]
+
 canli_ons = float(df_ons['Close'].iloc[-1])
 canli_dolar = float(df_dolar['Close'].iloc[-1])
 canli_dxy = float(df_dxy['Close'].iloc[-1])
 dun_ons = float(df_ons['Close'].iloc[-2])
 ons_degisim = ((canli_ons - dun_ons) / dun_ons) * 100
+
 df_ons['RSI'] = ta.momentum.rsi(df_ons['Close'], window=14)
 guncel_rsi = float(df_ons['RSI'].iloc[-1])
 df_ons['SMA20'] = ta.trend.sma_indicator(df_ons['Close'], window=20)
 sma20 = float(df_ons['SMA20'].iloc[-1])
+
 puan = 0
 if guncel_rsi < 35: puan += 1
 elif guncel_rsi > 65: puan -= 1
@@ -95,6 +105,7 @@ if canli_ons > sma20: puan += 1
 else: puan -= 1
 if canli_dxy > 104.5: puan -= 1
 else: puan += 1
+
 if puan >= 1:
 yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
 tahmin_kutusu = st.success
@@ -107,6 +118,7 @@ else:
 yarin_tahmin = "YATAY / DENGELİ"
 tahmin_kutusu = st.warning
 neden_ozeti = "Piyasalarda net bir kırılma sinyali yok. Fiyatlar dar bantta yatay hareket edebilir."
+
 st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
 hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0, key="alarm_input")
 if hedef_gram > 0:
@@ -114,29 +126,37 @@ if canli_gram >= hedef_gram:
 st.sidebar.success(f"🔔 ALARM: İZKO Gram Altın ({canli_gram:,.2f} TL) hedefinize ulaştı!")
 else:
 st.sidebar.info(f"⏳ {hedef_gram} TL olması bekleniyor...")
+
 st.sidebar.markdown("---")
 st.sidebar.subheader("🧮 Altın Hesaplama Robotu")
 hesap_turu = st.sidebar.selectbox("Altın Türü Seçin:", ["Gram Altın (İZKO)", "Çeyrek Altın", "Ata Altın"], key="calc_select")
 altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0, key="calc_input")
+
 if hesap_turu == "Gram Altın (İZKO)":
 toplam_tl = altin_miktari * canli_gram
 elif hesap_turu == "Çeyrek Altın":
 toplam_tl = altin_miktari * ceyrek_altin
 else:
 toplam_tl = altin_miktari * ata_altin
+
 st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
 st.sidebar.markdown("---")
+
 st.sidebar.subheader("💼 Kademeli Alım Portföyüm")
 p_turu = st.sidebar.selectbox("Altın Türü:", ["Gram Altın (İZKO)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select")
+
 st.sidebar.markdown("**1. Parça Alım**")
 ade1 = st.sidebar.number_input("Miktar 1:", min_value=0.0, value=0.0, step=1.0, key="a1")
 fiyat1 = st.sidebar.number_input("Alış Fiyatı 1:", min_value=0.0, value=0.0, step=10.0, key="f1")
+
 st.sidebar.markdown("**2. Parça Alım**")
 adet2 = st.sidebar.number_input("Miktar 2:", min_value=0.0, value=0.0, step=1.0, key="a2")
 fiyat2 = st.sidebar.number_input("Alış Fiyatı 2:", min_value=0.0, value=0.0, step=10.0, key="f2")
+
 st.sidebar.markdown("**3. Parça Alım**")
 adet3 = st.sidebar.number_input("Miktar 3:", min_value=0.0, value=0.0, step=1.0, key="a3")
 fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, step=10.0, key="f3")
+
 toplam_adet = ade1 + adet2 + adet3
 toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
 with sekme1:
@@ -190,32 +210,3 @@ info_df = pd.DataFrame({
 })
 st.table(info_df)
 st.markdown("💡 **RSI Nedir?** Göreceli Güç Endeksi, varlığın aşırı alınıp alınmadığını (65+ riskli) veya aşırı satılıp ucuzladığını (35- fırsat) gösteren bir momentum indikatörüdür.")
-with sekme3:
-st.subheader("🤖 Gemini Yapay Zeka Piyasa Yorumcusu")
-st.write("Anlık İZKO fiyatları ile küresel indikatör verilerini Gemini modeline göndererek profesyonel bir analiz raporu oluşturabilirsiniz.")
-if st.button("✨ Yapay Zeka Analiz Raporu Oluştur"):
-if not client:
-st.warning("⚠️ API Anahtarı bulunamadı. Lütfen Streamlit Secrets ayarlarına 'GEMINI_API_KEY' ekleyin.")
-else:
-with st.spinner("Yapay zeka piyasayı yorumluyor, lütfen bekleyin..."):
-try:
-analiz_prompt = f"""
-Bir finansal analist gibi davran. Sana güncel piyasa verilerini iletiyorum:
-- Ons Altın fiyatı: {canli_ons} USD
-- Dolar/TL kuru: {canli_dolar} TRY
-- İZKO Gram Altın (24K) fiyatı: {canli_gram:.2f} TL
-- İZKO Çeyrek Altın fiyatı: {ceyrek_altin:.2f} TL
-- Dolar Endeksi (DXY): {canli_dxy}
-- Altın RSI Değeri (14 Günlük): {guncel_rsi:.2f}
-- Altın 20 Günlük Basit Hareketli Ortalama (SMA): {sma20:.2f} 
-
-            Bu verilere dayanarak makroekonomik riskleri, altındaki aşırı alım/satım durumunu (RSI'a bakarak) ve gram altındaki gidişatı özetleyen, yatırım tavsiyesi içermeyen 3 kısa maddelik stratejik bir piyasa analizi yaz.
-            """
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=analiz_prompt,
-            )
-            st.success("📊 Yapay Zeka Analizi Tamamlandı!")
-            st.markdown(response.text)
-        except Exception as err:
-            st.error(f"Yapay zeka yanıtı üretilirken bir hata oluştu: {err}")
