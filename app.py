@@ -164,34 +164,35 @@ fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, 
 
 toplam_adet = ade1 + adet2 + adet3
 toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
+
 with sekme1:
 col_zaman, col_fed = st.columns(2)
 col_zaman.metric("🕒 Canlı Sistem Zamanı", anlik_zaman)
 col_fed.metric("🎯 Bir Sonraki FED Faiz Kararına", fed_sayaci)
-st.markdown("---") 
-
-if toplam_adet > 0 and toplam_maliyet > 0:
-ortalama_maliyet = toplam_maliyet / toplam_adet
-if p_turu == "Gram Altın (İZKO)":
-guncel_tek_fiyat = canli_gram
-elif p_turu == "Çeyrek Altın":
-guncel_tek_fiyat = ceyrek_altin
-else:
-guncel_tek_fiyat = ata_altin
-anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
-kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
-kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
-
-st.subheader("💼 Anlık Portföy Durum Raporunuz (İZKO Verilerine Göre)")
-k_col1, k_col2, k_col3 = st.columns(3)
-k_col1.metric("Toplam Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
-k_col2.metric("Ortalama Maliyetiniz", f"{ortalama_maliyet:,.2f} TL", f"{toplam_adet} Adet/Gram")
-k_col3.metric("Net Kâr / Zarar Statüsü", f"{kar_zarar_tl:,.2f} TL", f"{kar_zarar_yuzde:+.2f}%")
 st.markdown("---")
+if toplam_adet > 0 and toplam_maliyet > 0:
+    ortalama_maliyet = toplam_maliyet / toplam_adet
+    if p_turu == "Gram Altın (İZKO)":
+        guncel_tek_fiyat = canli_gram
+    elif p_turu == "Çeyrek Altın":
+        guncel_tek_fiyat = ceyrek_altin
+    else:
+        guncel_tek_fiyat = ata_altin
+        
+    anlik_toplam_deger = toplam_adet * guncel_tek_fiyat
+    kar_zarar_tl = anlik_toplam_deger - toplam_maliyet
+    kar_zarar_yuzde = (kar_zarar_tl / toplam_maliyet) * 100
+    
+    st.subheader("💼 Anlık Portföy Durum Raporunuz (İZKO Verilerine Göre)")
+    k_col1, k_col2, k_col3 = st.columns(3)
+    k_col1.metric("Toplam Portföy Değeri", f"{anlik_toplam_deger:,.2f} TL")
+    k_col2.metric("Ortalama Maliyetiniz", f"{ortalama_maliyet:,.2f} TL", f"{toplam_adet} Adet/Gram")
+    k_col3.metric("Net Kâr / Zarar Statüsü", f"{kar_zarar_tl:,.2f} TL", f"{kar_zarar_yuzde:+.2f}%")
+    st.markdown("---")
 
 st.subheader("📈 Küresel ve Yerel Anlık Göstergeler")
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Ons Altın ($)", f"{canli_ons:,.2f}", f"{ons_degisim:+.2f}%")
+m1.metric("Ons Altın (\$)", f"{canli_ons:,.2f}", f"{ons_degisim:+.2f}%")
 m2.metric("İZKO Gram Altın", f"{canli_gram:,.2f} TL")
 m3.metric("USD / TRY", f"{canli_dolar:,.2f} TL")
 m4.metric("DXY (Dolar Endeksi)", f"{canli_dxy:,.2f}")
@@ -212,44 +213,8 @@ st.info(f"**Teknik Analiz Gerekçesi:** {neden_ozeti}")
 
 with sekme2:
 st.subheader("🧠 Temel Altın ve Finans Bilgileri")
-st.write("Yatırım yaparken bilmeniz gereken altın türleri, saflık oranları ve standartlar:") 
-
+st.write("Yatırım yaparken bilmeniz gereken altın türleri, saflık oranları ve standartlar:")
 info_df = pd.DataFrame({
-"Altın Türü": ["Has Altın (24 Ayar)", "22 Ayar Altın", "Ata / Cumhuriyet", "Çeyrek Altın"],
-"Milyem (Saflık)": ["0.995 / 0.999", "0.916", "0.916", "0.916"],
-"Ağırlık (Gram)": ["1.00g", "1.00g", "7.216g", "1.754g"],
-"Kullanım Alanı": ["Külçe / Gram Yatırım", "Bilezik / Takı", "Devlet Darphane Yatırım", "Yastıkaltı Birikim"]
-})
-st.table(info_df)
-
-st.markdown("💡 **RSI Nedir?** Göreceli Güç Endeksi, varlığın aşırı alınıp alınmadığını (65+ riskli) veya aşırı satılıp ucuzladığını (35- fırsat) gösteren bir momentum indikatörüdür.")
-
-with sekme3:
-st.subheader("🤖 Gemini Yapay Zeka Piyasa Yorumcusu")
-st.write("Anlık İZKO fiyatları ile küresel indikatör verilerini Gemini modeline göndererek profesyonel bir analiz raporu oluşturabilirsiniz.") 
-
-if st.button("✨ Yapay Zeka Analiz Raporu Oluştur"):
-if not client:
-st.warning("⚠️ API Anahtarı bulunamadı. Lütfen Streamlit Secrets ayarlarına 'GEMINI_API_KEY' ekleyin.")
-else:
-with st.spinner("Yapay zeka piyasayı yorumluyor, lütfen bekleyin..."):
-try:
-analiz_prompt = f"""
-Bir finansal analist gibi davran. Sana güncel piyasa verilerini iletiyorum:
-- Ons Altın fiyatı: {canli_ons} USD
-- Dolar/TL kuru: {canli_dolar} TRY
-- İZKO Gram Altın (24K) fiyatı: {canli_gram:.2f} TL
-- İZKO Çeyrek Altın fiyatı: {ceyrek_altin:.2f} TL
-- Dolar Endeksi (DXY): {canli_dxy}
-- Altın RSI Değeri (14 Günlük): {guncel_rsi:.2f}
-- Altın 20 Günlük Basit Hareketli Ortalama (SMA): {sma20:.2f}
-            Bu verilere dayanarak makroekonomik riskleri, altındaki aşırı alım/satım durumunu (RSI'a bakarak) ve gram altındaki gidişatı özetleyen, yatırım tavsiyesi içermeyen 3 kısa maddelik stratejik bir piyasa analizi yaz.
-            """
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=analiz_prompt,
-            )
-            st.success("📊 Yapay Zeka Analizi Tamamlandı!")
-            st.markdown(response.text)
-        except Exception as err:
-            st.error(f"Yapay zeka yanıtı üretilirken bir hata oluştu: {err}")
+    "Altın Türü": ["Has Altın (24 Ayar)", "22 Ayar Altın", "Ata / Cumhuriyet", "Çeyrek Altın"],
+    "Milyem (Saflık)": ["0.995 / 0.999", "0.916", "0.916", "0.916"],
+    "Ağırlık (Gram)": ["1.00g", "1.00g", "7.216g", "1.754g"],
