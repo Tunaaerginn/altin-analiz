@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from google import genai
-from google.genai import types 
+from google.genai import types
 
 ### Web sitesinin tarayıcı sekme ayarları
 
