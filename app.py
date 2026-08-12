@@ -5,8 +5,6 @@ import ta
 import time
 import random
 from datetime import datetime
-from google import genai
-from google.genai import types 
 
 ### Web sitesinin tarayıcı sekme ayarları
 
