@@ -7,23 +7,16 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from google import genai
-from google.genai import types
-
-### Web sitesinin tarayıcı sekme ayarları
+from google.genai import types 
 
 st.set_page_config(page_title="İZKO Destekli Altın & Faiz Paneli", page_icon="💎", layout="wide") 
-
-### Google GenAI API bağlantısı (Secrets üzerinden güvenli erişim)
 
 try:
 client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
 except Exception as e:
 client = None 
 
-def fed_kalan_sure(): 
-
-# Bir sonraki FED faiz kararı: 16 Eylül 2026 Saat 21:00 (TSİ)
-
+def fed_kalan_sure():
 fed_tarihi = datetime(2026, 9, 16, 21, 0, 0)
 simdi = datetime.now()
 fark = fed_tarihi - simdi
@@ -32,7 +25,7 @@ gun = fark.days
 saat = fark.seconds // 3600
 dakika = (fark.seconds % 3600) // 60
 return f"{gun} Gün, {saat} Saat, {dakika} Dk"
-return "Açıklanıyor / Karar Günü"
+return "Açıklanıyor / Karar Günü" 
 
 def get_finans_mottosu():
 mottolar = [
@@ -46,7 +39,6 @@ return random.choice(mottolar) 
 
 @st.cache_data(ttl=300)
 def izko_fiyatlarini_cek():
-"""https://www.izko.org.tr/guncel-kur adresinden canlı altın fiyatlarını çeker"""
 fiyatlar = {
 "Gram Altın": 0.0, "22 Ayar": 0.0, "Yeni Çeyrek": 0.0,
 "Yeni Yarım": 0.0, "Yeni Ziynet": 0.0, "Ata Altın": 0.0
@@ -55,36 +47,28 @@ try:
 url = "https://www.izko.org.tr/guncel-kur"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 response = requests.get(url, headers=headers, timeout=10)
-soup = BeautifulSoup(response.text, "html.parser") 
-
-### Sitedeki tüm tablo satırlarını buluyoruz
-
+soup = BeautifulSoup(response.text, "html.parser")
 rows = soup.find_all("tr")
 for row in rows:
 cols = row.find_all("td")
 if len(cols) >= 3:
-urun_adi = cols.text.strip() 
-
-        # Satış fiyatını alıp sayıya dönüştürüyoruz
-        satis_str = cols[2].text.strip().replace(".", "").replace(",", ".").replace(" ₺", "")
-        try:
-            satis_fiyat = float(satis_str)
-            if urun_adi in fiyatlar:
-                fiyatlar[urun_adi] = satis_fiyat
-        except ValueError:
-            continue
+urun_adi = cols.text.strip()
+satis_str = cols.text.strip().replace(".", "").replace(",", ".").replace(" ₺", "")
+try:
+satis_fiyat = float(satis_str)
+if urun_adi in fiyatlar:
+fiyatlar[urun_adi] = satis_fiyat
+except ValueError:
+continue
 return fiyatlar
-
 except Exception as e:
-return None
+return None 
 
 st.title("💎 İZMİR KUYUMCULAR ODASI (İZKO) ENTEGRASYONLU ANALİZ PANELİ")
 st.markdown(f"*{get_finans_mottosu()}*")
 st.markdown("---") 
 
 sekme1, sekme2, sekme3 = st.tabs(["📊 Canlı Takip Paneli", "🧠 Altın Bilgi Kütüphanesi", "🤖 Yapay Zeka Danışmanı"]) 
-
-### İndikatörler ve Ons analizi için küresel verileri yine de arka planda çekiyoruz
 
 altin_ticker = yf.Ticker("GC=F")
 dolar_ticker = yf.Ticker("USDTRY=X")
@@ -102,31 +86,23 @@ else:
 anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
 fed_sayaci = fed_kalan_sure() 
 
-### İZKO'dan gelen net yerel fiyatlar
-
 canli_gram = izko_fiyatlari["Gram Altın"] if izko_fiyatlari["Gram Altın"] > 0 else ((float(df_ons['Close'].iloc[-1]) / 31.1034768) * float(df_dolar['Close'].iloc[-1]))
 altin_22_ayar = izko_fiyatlari["22 Ayar"]
 ceyrek_altin = izko_fiyatlari["Yeni Çeyrek"]
 yarim_altin  = izko_fiyatlari["Yeni Yarım"]
 tam_altin    = izko_fiyatlari["Yeni Ziynet"]
-ata_altin    = izko_fiyatlari["Ata Altın"] 
-
-### Küresel Göstergeler
+ata_altin    = izko_fiyatlari["Ata Altın"]
 
 canli_ons = float(df_ons['Close'].iloc[-1])
 canli_dolar = float(df_dolar['Close'].iloc[-1])
 canli_dxy = float(df_dxy['Close'].iloc[-1])
 dun_ons = float(df_ons['Close'].iloc[-2])
-ons_degisim = ((canli_ons - dun_ons) / dun_ons) * 100 
-
-### Teknik İndikatör Hesaplamaları
+ons_degisim = ((canli_ons - dun_ons) / dun_ons) * 100
 
 df_ons['RSI'] = ta.momentum.rsi(df_ons['Close'], window=14)
 guncel_rsi = float(df_ons['RSI'].iloc[-1])
 df_ons['SMA20'] = ta.trend.sma_indicator(df_ons['Close'], window=20)
-sma20 = float(df_ons['SMA20'].iloc[-1]) 
-
-### Trend Puanlama Sistemi
+sma20 = float(df_ons['SMA20'].iloc[-1])
 
 puan = 0
 if guncel_rsi < 35: puan += 1
@@ -134,7 +110,7 @@ elif guncel_rsi > 65: puan -= 1
 if canli_ons > sma20: puan += 1
 else: puan -= 1
 if canli_dxy > 104.5: puan -= 1
-else: puan += 1 
+else: puan += 1
 
 if puan >= 1:
 yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
@@ -147,9 +123,7 @@ neden_ozeti = "ABD Dolar Endeksi (DXY) güçlü kalmaya devam ediyor. Ons taraf�
 else:
 yarin_tahmin = "YATAY / DENGELİ"
 tahmin_kutusu = st.warning
-neden_ozeti = "Piyasalarda net bir kırılma sinyali yok. Fiyatlar dar bantta yatay hareket edebilir." 
-
-### SIDEBAR: Sol Menü İşlevleri
+neden_ozeti = "Piyasalarda net bir kırılma sinyali yok. Fiyatlar dar bantta yatay hareket edebilir."
 
 st.sidebar.subheader("🚨 Canlı Fiyat Alarmı")
 hedef_gram = st.sidebar.number_input("Hedef Gram Altın Fiyatı (TL):", min_value=0.0, value=0.0, step=10.0, key="alarm_input")
@@ -157,37 +131,37 @@ if hedef_gram > 0:
 if canli_gram >= hedef_gram:
 st.sidebar.success(f"🔔 ALARM: İZKO Gram Altın ({canli_gram:,.2f} TL) hedefinize ulaştı!")
 else:
-st.sidebar.info(f"⏳ {hedef_gram} TL olması bekleniyor...") 
+st.sidebar.info(f"⏳ {hedef_gram} TL olması bekleniyor...")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🧮 Altın Hesaplama Robotu")
 hesap_turu = st.sidebar.selectbox("Altın Türü Seçin:", ["Gram Altın (İZKO)", "Çeyrek Altın", "Ata Altın"], key="calc_select")
-altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0, key="calc_input") 
+altin_miktari = st.sidebar.number_input("Adet / Gram Miktarı:", min_value=0.0, value=1.0, step=1.0, key="calc_input")
 
 if hesap_turu == "Gram Altın (İZKO)":
 toplam_tl = altin_miktari * canli_gram
 elif hesap_turu == "Çeyrek Altın":
 toplam_tl = altin_miktari * ceyrek_altin
 else:
-toplam_tl = altin_miktari * ata_altin 
+toplam_tl = altin_miktari * ata_altin
 
 st.sidebar.metric(f"Toplam Tutar", f"{toplam_tl:,.2f} TL")
-st.sidebar.markdown("---") 
+st.sidebar.markdown("---")
 
 st.sidebar.subheader("💼 Kademeli Alım Portföyüm")
-p_turu = st.sidebar.selectbox("Altın Türü:", ["Gram Altın (İZKO)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select") 
+p_turu = st.sidebar.selectbox("Altın Türü:", ["Gram Altın (İZKO)", "Çeyrek Altın", "Ata Altın"], key="p_turu_select")
 
 st.sidebar.markdown("**1. Parça Alım**")
 ade1 = st.sidebar.number_input("Miktar 1:", min_value=0.0, value=0.0, step=1.0, key="a1")
-fiyat1 = st.sidebar.number_input("Alış Fiyatı 1:", min_value=0.0, value=0.0, step=10.0, key="f1") 
+fiyat1 = st.sidebar.number_input("Alış Fiyatı 1:", min_value=0.0, value=0.0, step=10.0, key="f1")
 
 st.sidebar.markdown("**2. Parça Alım**")
 adet2 = st.sidebar.number_input("Miktar 2:", min_value=0.0, value=0.0, step=1.0, key="a2")
-fiyat2 = st.sidebar.number_input("Alış Fiyatı 2:", min_value=0.0, value=0.0, step=10.0, key="f2") 
+fiyat2 = st.sidebar.number_input("Alış Fiyatı 2:", min_value=0.0, value=0.0, step=10.0, key="f2")
 
 st.sidebar.markdown("**3. Parça Alım**")
 adet3 = st.sidebar.number_input("Miktar 3:", min_value=0.0, value=0.0, step=1.0, key="a3")
-fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, step=10.0, key="f3") 
+fiyat3 = st.sidebar.number_input("Alış Fiyatı 3:", min_value=0.0, value=0.0, step=10.0, key="f3")
 
 toplam_adet = ade1 + adet2 + adet3
 toplam_maliyet = (ade1 * fiyat1) + (adet2 * fiyat2) + (adet3 * fiyat3)
