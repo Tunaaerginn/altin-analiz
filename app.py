@@ -5,13 +5,13 @@ import ta
 import random
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime 
+import datetime as dt 
 
 st.set_page_config(page_title="İZKO Destekli Altın & Faiz Paneli", page_icon="💎", layout="wide") 
 
 def fed_kalan_sure():
-fed_tarihi = datetime(2026, 9, 16, 21, 0, 0)
-simdi = datetime.now()
+fed_tarihi = dt.datetime(2026, 9, 16, 21, 0, 0)
+simdi = dt.datetime.now()
 fark = fed_tarihi - simdi
 if fark.total_seconds() > 0:
 gun = fark.days
@@ -32,10 +32,7 @@ return random.choice(mottolar) 
 
 @st.cache_data(ttl=300)
 def izko_fiyatlarini_cek():
-fiyatlar = {
-"Gram Altın": 0.0, "22 Ayar": 0.0, "Yeni Çeyrek": 0.0,
-"Yeni Yarım": 0.0, "Yeni Ziynet": 0.0, "Ata Altın": 0.0
-}
+fiyatlar = {"Gram Altın": 0.0, "22 Ayar": 0.0, "Yeni Çeyrek": 0.0, "Yeni Yarım": 0.0, "Yeni Ziynet": 0.0, "Ata Altın": 0.0}
 try:
 url = "https://www.izko.org.tr/guncel-kur"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
@@ -51,10 +48,10 @@ try:
 satis_fiyat = float(satis_str)
 if urun_adi in fiyatlar:
 fiyatlar[urun_adi] = satis_fiyat
-except ValueError:
+except:
 continue
 return fiyatlar
-except Exception as e:
+except:
 return None 
 
 st.title("💎 İZMİR KUYUMCULAR ODASI (İZKO) ENTEGRASYONLU ANALİZ PANELİ")
@@ -76,7 +73,7 @@ izko_fiyatlari = izko_fiyatlarini_cek() 
 if df_ons.empty or not izko_fiyatlari:
 st.error("⚠️ Veriler çekilemedi! İnternet bağlantınızı kontrol edin.")
 else:
-anlik_zaman = datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
+anlik_zaman = dt.datetime.now().strftime("%d.%m.%Y | %H:%M:%S")
 fed_sayaci = fed_kalan_sure() 
 
 canli_gram = izko_fiyatlari["Gram Altın"] if izko_fiyatlari["Gram Altın"] > 0 else ((float(df_ons['Close'].iloc[-1]) / 31.1034768) * float(df_dolar['Close'].iloc[-1]))
