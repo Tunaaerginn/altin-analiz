@@ -7,7 +7,6 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from google import genai
-from google.genai import types 
 
 st.set_page_config(page_title="İZKO Destekli Altın & Faiz Paneli", page_icon="💎", layout="wide") 
 
