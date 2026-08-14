@@ -97,7 +97,7 @@ else:
         yarin_tahmin = "YUKARI EĞİLİMLİ (DESTEKLENİYOR)"
         tahmin_kutusu = st.success
         neden_ozeti = (
-            "Amerika Altını Düşürmek İçin Elinden Gelen Herşeyi Yapmaya Çalışıyor Kısa Vadede Faiz Yükseticem Diyor Ama Ülke Ekonomisi Buna El Vermiyor. Ve Altın Son Hız Yükselmeye Devam Ediyor"
+            "Amerika Altını Düşürmek İçin Elinden Gelen Herşeyi Yapmaya Çalışıyor Kısa Vadede Faiz Yükselticeğini Söylüyor Ama Ülke Ekonomisi Buna El Vermiyor. Ve Altın Son Hız Yükselmeye Devam Ediyor"
             "Ons altındaki talep artışı ve destek seviyelerinin korunması, kısa vadeli yukarı yönlü eğilimi güçlendirmektedir.\n\n"
             "**Uyanık Yatırımcı Özeti:** Altın 40k & 41k değerlerindeyken internet aracılığıyla 40K'dan alıp 41K'dan satıp kâr ettiği için, "
             "altın her artış gösterdiğinde yüklü miktarda altın satılıyordu.\n\n"
